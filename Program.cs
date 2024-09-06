@@ -1,3 +1,18 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿
+using Microsoft.Extensions.Configuration;
 
-Console.WriteLine("Hello, World!");
+namespace ZipFileProcessor
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Hello, World!");
+            
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+        }
+    }
+}
+
