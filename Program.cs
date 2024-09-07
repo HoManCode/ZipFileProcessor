@@ -28,11 +28,7 @@ namespace ZipFileProcessor
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
             
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .WriteTo.Console()
-                .WriteTo.File(configuration["LogFileLocation"] + "log_.txt", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            LogConfig.SerilogConfig(configuration);
             
             serviceCollection
                 .AddSingleton<IConfiguration>(configuration)
