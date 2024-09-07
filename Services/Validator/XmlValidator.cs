@@ -13,51 +13,49 @@ public class XmlValidator : IValidator
     {
         _logger = logger;
     }
-    public bool Validate(string xmlFilePath, string xsdFilePath)
+    public bool Validate(string xmlFilePath, string schemaFilePath)
     {
         bool isValid = true;
 
         try
         {
             if (!File.Exists(xmlFilePath)) throw new FileNotFoundException($"XML file '{xmlFilePath}' not found.");
-            if (!File.Exists(xsdFilePath)) throw new FileNotFoundException($"XSD file '{xsdFilePath}' not found.");
+            if (!File.Exists(schemaFilePath)) throw new FileNotFoundException($"XSD file '{schemaFilePath}' not found.");
             
-            XmlSchemaSet schema = new XmlSchemaSet();
-            schema.Add(null, xsdFilePath);
+            var schema = new XmlSchemaSet();
+            schema.Add(null, schemaFilePath);
             
-            XmlReaderSettings settings = new XmlReaderSettings();
+            var settings = new XmlReaderSettings();
             settings.Schemas.Add(schema);
             settings.ValidationType = ValidationType.Schema;
             
             settings.ValidationEventHandler += (sender, e) =>
             {
                 isValid = false;
-                _logger.LogError($"file did not find error: {e.Message}");
+                _logger.LogError("file did not find error: {e.Message}", e.Message);
             };
-            
-            using (XmlReader reader = XmlReader.Create(xmlFilePath, settings))
-            {
-                while (reader.Read()) { } // Validate XML by reading it
-            }
+
+            using var reader = XmlReader.Create(xmlFilePath, settings);
+            while (reader.Read()) { }
         }
         catch (XmlSchemaException ex)
         {
-            _logger.LogError($"Schema error: {ex.Message}");
+            _logger.LogError("Schema error: {ex.Message}", ex.Message);
             return false;
         }
         catch (FileNotFoundException ex)
         {
-            _logger.LogError($"file did not find error: {ex.Message}");
+            _logger.LogError("file did not find error: {ex.Message}", ex.Message);
             return false;
         }
         catch (XmlException ex)
         {
-            _logger.LogError($"Xml error: {ex.Message}");
+            _logger.LogError("Xml error: {ex.Message}", ex.Message);
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Unexpected error: {ex.Message}");
+            _logger.LogError("Unexpected error: {ex.Message}", ex.Message);
             return false;
         }
 

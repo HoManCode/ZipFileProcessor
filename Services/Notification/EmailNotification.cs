@@ -47,15 +47,15 @@ public class EmailNotification : INotification
         }
         catch (FormatException ex)
         {
-            _logger.LogError($"Format exception: {ex.Message}");
+            _logger.LogError("Format exception: {ex.Message}", ex.Message);
         }
         catch (SmtpException ex)
         {
-            _logger.LogError($"SMTP exception: {ex.Message}");
+            _logger.LogError("SMTP exception: {ex.Message}", ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception: {ex.Message}");
+            _logger.LogError("Exception: {ex.Message}", ex.Message);
         }
         
     }
