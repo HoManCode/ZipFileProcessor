@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using ZipFileProcessor.Services.Notification;
 using ZipFileProcessor.Services.Validator;
 
 
@@ -17,24 +18,28 @@ namespace ZipFileProcessor
             
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             
-            var validator = host.Services.GetRequiredService<IXmlValidator>();
+            var validator = host.Services.GetRequiredService<IValidator>();
 
-            //bool valid = validator.ValidateXml("./", "{}");
-            
+            var emailSender = host.Services.GetRequiredService<INotification>();
+
+            //emailSender.SendNotification("hello", "world");
+
+            //bool valid = validator.Validate("./", "{}");
+
             //logger.LogInformation($"Processing ZIP file: ");
-            
+
             //logger.LogError("file did not find");
-            
+
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
+        private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
                 })
-                .UseSerilog((context, services, loggerConfig) =>
+                .UseSerilog((context, loggerConfig) =>
                 {
                     loggerConfig
                         .ReadFrom.Configuration(context.Configuration)
@@ -46,8 +51,8 @@ namespace ZipFileProcessor
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddSingleton<IXmlValidator, XmlValidator>();
-                    
+                    services.AddSingleton<IValidator, XmlValidator>();
+                    services.AddTransient<INotification, EmailNotification>();
                 });
         }
             

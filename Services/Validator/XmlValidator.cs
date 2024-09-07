@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipFileProcessor.Services.Validator;
 
-public class XmlValidator : IXmlValidator
+public class XmlValidator : IValidator
 {
     private readonly ILogger<XmlValidator> _logger;
     
@@ -13,7 +13,7 @@ public class XmlValidator : IXmlValidator
     {
         _logger = logger;
     }
-    public bool ValidateXml(string xmlFilePath, string xsdFilePath)
+    public bool Validate(string xmlFilePath, string xsdFilePath)
     {
         bool isValid = true;
 
