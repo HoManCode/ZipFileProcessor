@@ -1,5 +1,8 @@
 ﻿
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace ZipFileProcessor
 {
@@ -7,11 +10,36 @@ namespace ZipFileProcessor
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            var services = Services();
             
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            
+            logger.LogInformation($"Processing ZIP file: ");
+            
+            logger.LogError("file did not find");
+            
+        }
+
+        private static ServiceProvider Services()
+        {
+            var serviceCollection = new ServiceCollection();
+
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
+            
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .WriteTo.Console()
+                .WriteTo.File(configuration["LogFileLocation"] + "log_.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+            
+            serviceCollection
+                .AddSingleton<IConfiguration>(configuration)
+                .AddLogging(configure => configure.AddSerilog())
+                .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
+            
+            return serviceCollection.BuildServiceProvider();
         }
     }
 }
