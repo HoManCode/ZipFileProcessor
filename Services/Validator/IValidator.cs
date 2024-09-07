@@ -2,5 +2,5 @@ namespace ZipFileProcessor.Services.Validator;
 
 public interface IValidator
 {
-    bool Validate(string filePath, string schemaFilePath);
+    bool Validate(System.IO.Compression.ZipArchiveEntry file, string schemaFilePath);
 }

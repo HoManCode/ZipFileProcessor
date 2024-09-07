@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace ZipFileProcessor.Services.Notification;
 
@@ -12,20 +13,20 @@ public class EmailNotification : INotification
     private readonly string _smtpUsername;
     private readonly string _smtpPassword;
     private readonly string _adminEmail;
-    private readonly ILogger<EmailNotification> _logger;
         
-    public EmailNotification(IConfiguration configuration, ILogger<EmailNotification> logger)
+    public EmailNotification(IConfiguration configuration)
     {
         _smtpServer = configuration["EmailSettings:SmtpServer"];
         _smtpPort = configuration["EmailSettings:SmtpPort"];
         _smtpUsername = configuration["EmailSettings:SmtpUsername"];
         _smtpPassword = configuration["EmailSettings:SmtpPassword"];
         _adminEmail = configuration["EmailSettings:AdminEmail"];
-        _logger = logger;
     }
     
     public async Task SendNotification(string subject, string message)
     {
+        Log.Information("********************Starting email SendNotification method********************");
+        
         try
         {
             var mailMessage = new MailMessage
@@ -47,15 +48,15 @@ public class EmailNotification : INotification
         }
         catch (FormatException ex)
         {
-            _logger.LogError("Format exception: {ex.Message}", ex.Message);
+            Log.Error("Format exception: {ex.Message}", ex.Message);
         }
         catch (SmtpException ex)
         {
-            _logger.LogError("SMTP exception: {ex.Message}", ex.Message);
+            Log.Error("SMTP exception: {ex.Message}", ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError("Exception: {ex.Message}", ex.Message);
+            Log.Error("Exception: {ex.Message}", ex.Message);
         }
         
     }

@@ -2,34 +2,26 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using ZipFileProcessor.Services.Notification;
+using ZipFileProcessor.Services.Processor;
 using ZipFileProcessor.Services.Validator;
 
 
 namespace ZipFileProcessor
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
             
-            var logger = host.Services.GetRequiredService<ILogger<Program>>();
+            var configuration = host.Services.GetService(typeof(IConfiguration)) as IConfiguration;
             
-            var validator = host.Services.GetRequiredService<IValidator>();
+            var processor = host.Services.GetRequiredService<IProcessor>();
 
-            var emailSender = host.Services.GetRequiredService<INotification>();
-
-            //emailSender.SendNotification("hello", "world");
-
-            //bool valid = validator.Validate("./", "{}");
-
-            //logger.LogInformation($"Processing ZIP file: ");
-
-            //logger.LogError("file did not find");
-
+            processor.Process(configuration["ZipFileLoc"],configuration);
+            
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
@@ -45,14 +37,15 @@ namespace ZipFileProcessor
                         .ReadFrom.Configuration(context.Configuration)
                         .WriteTo.Console()
                         .WriteTo.File(
-                            path: context.Configuration["LogFileLocation"] + "log_.txt",
+                            path: context.Configuration["LogFileLoc"] + "log_.txt",
                             rollingInterval: RollingInterval.Day
                         );
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddSingleton<IValidator, XmlValidator>();
+                    services.AddTransient<IValidator, XmlValidator>();
                     services.AddTransient<INotification, EmailNotification>();
+                    services.AddTransient<IProcessor, ZipProcessor>();
                 });
         }
             
