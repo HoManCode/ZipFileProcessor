@@ -12,3 +12,26 @@ The application is configurable and logs all operations for troubleshooting and 
 - Email Notifications: Sends an email notification to an administrator when processing completes or when an error occurs.
 - Configurable: Settings such as administrator email, file paths, and supported file types can be customized via appsettings.json.
 - Logging: Logs all actions, including success, errors, and detailed file processing information.
+
+## Requirements
+
+- .NET Core SDK 6.0 or later
+- SMTP server for email notifications
+- Serilog for logging
+- Microsoft.Extensions.Configuration for configuration management
+
+## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/HoManCode/ZipFileProcessor.git 
+   
+2. Install required dependencies:
+
+    ```bash
+   dotnet restore
+   
+3. Set up configuration:
+   Configure the application settings, particularly the FileTypes, PartyXmlFile, XsdFileLoc, and SMTP settings in appsettings.json:
+    
