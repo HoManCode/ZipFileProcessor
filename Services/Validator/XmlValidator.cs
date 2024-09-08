@@ -14,43 +14,26 @@ public class XmlValidator : IValidator
         
         var isValid = true;
 
+        
+        var schema = new XmlSchemaSet();
+        schema.Add(null, schemaFilePath); 
+
+        
+        var settings = new XmlReaderSettings();
+        settings.ValidationType = ValidationType.Schema;
+        settings.Schemas = schema;
+        
+        using var xmlStream = xmlFile.Open();
+        using var reader = XmlReader.Create(xmlStream, settings);
         try
         {
-            if (!File.Exists(schemaFilePath)) throw new FileNotFoundException($"XSD file '{schemaFilePath}' not found.");
-            
-            var schema = new XmlSchemaSet();
-            schema.Add(null, schemaFilePath);
-            
-            var settings = new XmlReaderSettings();
-            settings.Schemas.Add(schema);
-            settings.ValidationType = ValidationType.Schema;
-            
-            settings.ValidationEventHandler += (sender, e) =>
-            {
-                isValid = false;
-                Log.Error("file did not find error: {e.Message}", e.Message);
-            };
-            
-        }
-        catch (XmlSchemaException ex)
-        {
-            Log.Error("Schema error: {ex.Message}", ex.Message);
-            return false;
-        }
-        catch (FileNotFoundException ex)
-        {
-            Log.Error("file did not find error: {ex.Message}", ex.Message);
-            return false;
+            while (reader.Read()) { } 
+            Log.Information("XML is valid.");
         }
         catch (XmlException ex)
         {
-            Log.Error("Xml error: {ex.Message}", ex.Message);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Log.Error("Unexpected error: {ex.Message}", ex.Message);
-            return false;
+            Log.Error("XML Exception: {ex.Message}",ex.Message);
+            isValid = false;
         }
 
         return isValid;

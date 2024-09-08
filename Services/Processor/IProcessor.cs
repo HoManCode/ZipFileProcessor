@@ -4,5 +4,5 @@ namespace ZipFileProcessor.Services.Processor;
 
 public interface IProcessor
 {
-    Task Process(string filepath, IConfiguration configuration);
+    Task Process(string? filepath);
 }

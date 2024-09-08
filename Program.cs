@@ -20,7 +20,7 @@ namespace ZipFileProcessor
             
             var processor = host.Services.GetRequiredService<IProcessor>();
 
-            processor.Process(configuration["ZipFileLoc"],configuration);
+            processor.Process(configuration?["ZipFileLoc"]);
             
         }
 

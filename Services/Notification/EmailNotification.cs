@@ -38,11 +38,9 @@ public class EmailNotification : INotification
             };
             mailMessage.To.Add(_adminEmail);
 
-            using var smtpClient = new SmtpClient(_smtpServer, int.Parse(_smtpPort))
-            {
-                Credentials = new NetworkCredential(_smtpUsername, _smtpPassword),
-                EnableSsl = true
-            };
+            using var smtpClient = new SmtpClient(_smtpServer, int.Parse(_smtpPort));
+            smtpClient.Credentials = new NetworkCredential(_smtpUsername, _smtpPassword);
+            smtpClient.EnableSsl = true;
 
             await smtpClient.SendMailAsync(mailMessage);
         }
