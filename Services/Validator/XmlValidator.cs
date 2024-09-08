@@ -32,7 +32,7 @@ public class XmlValidator : IValidator
         }
         catch (XmlException ex)
         {
-            Log.Error("XML Exception: {ex.Message}",ex.Message);
+            Log.Error("XML Exception: {Message}",ex.Message);
             isValid = false;
         }
 

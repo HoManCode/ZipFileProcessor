@@ -25,7 +25,7 @@ namespace ZipFileProcessor.Services.Processor
 
         public async Task Process(string? zipFilePath)
         {
-            Log.Information("Starting ZIP file processing for {ZipFilePath}", zipFilePath);
+            Log.Information("********************Starting ZIP file processing for {ZipFilePath}********************", zipFilePath);
 
             var fileTypes = _configuration.GetSection("FileTypes").Get<List<string>>()
                 ?? throw new InvalidOperationException("File types configuration is missing or empty");
@@ -50,19 +50,19 @@ namespace ZipFileProcessor.Services.Processor
 
                         var applicationNo = ExtractAndValidateApplicationNumber(xmlFile);
 
-                        var extractPath = CreateExtractPath(applicationNo);
+                        var extractPath = CreateExtractPath(applicationNo, _configuration);
 
                         ExtractFiles(zipArchive, extractPath);
                     }
 
+                    Log.Information($"The ZIP file at {zipFilePath} was processed successfully.");
                     await NotifyProcessingSuccess(zipFilePath);
                 }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An error occurred while processing the ZIP file.");
+                Log.Information($"The processing of the ZIP file at {zipFilePath} failed.");
                 if (zipFilePath != null) await NotifyProcessingFailure(zipFilePath, ex);
-                throw;
             }
         }
 
@@ -70,16 +70,12 @@ namespace ZipFileProcessor.Services.Processor
         {
             if (!IsZipFile(zipFilePath))
             {
-                var message = "The file is not a ZIP file.";
-                Log.Error(message);
-                throw new InvalidDataException(message);
+                throw new InvalidDataException("The file is not a ZIP file.");
             }
 
             if (!IsZipFileValid(zipFilePath, fileTypes))
             {
-                var message = "The ZIP file is corrupt or invalid.";
-                Log.Error(message);
-                throw new InvalidDataException(message);
+                throw new InvalidDataException("The ZIP file is corrupt or invalid.");
             }
         }
         
@@ -94,23 +90,25 @@ namespace ZipFileProcessor.Services.Processor
             try
             {
                 using var zipArchive = ZipFile.OpenRead(filePath);
-                ArgumentNullException.ThrowIfNull(fileTypes);
                 foreach (var entry in zipArchive.Entries)
                 {
                     var extension = Path.GetExtension(entry.FullName).ToLower();
                     if (fileTypes.Contains(extension)) continue;
-                    Log.Error("Invalid file type detected: {FileName}", entry.FullName); 
                     throw new InvalidDataException($"Invalid file type: {entry.FullName}");
                 }
                 isValid = true;
             }
+            catch (IOException ex)
+            {
+                Log.Error("An I/O error occurred while opening the ZIP file: {message}", ex.Message);
+            }
             catch (InvalidDataException ex)
             {
-                Log.Error(ex, "The ZIP file is invalid or corrupted.");
+                Log.Error("The ZIP file is invalid or corrupted: {message}", ex.Message);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An error occurred while opening the ZIP file.");
+                Log.Error("An unexpected error occurred: {message} ",ex.Message);
             }
 
             return isValid;
@@ -151,10 +149,10 @@ namespace ZipFileProcessor.Services.Processor
             return applicationNo;
         }
 
-        private static string CreateExtractPath(string applicationNo)
+        private string CreateExtractPath(string applicationNo, IConfiguration configuration)
         {
             var guid = Guid.NewGuid().ToString();
-            var extractPath = Path.Combine("extracted", $"{applicationNo}-{guid}");
+            var extractPath = Path.Combine(GetConfigurationValue("ExtractedFilesLoc"), $"{applicationNo}-{guid}");
             Directory.CreateDirectory(extractPath);
             return extractPath;
         }
@@ -164,8 +162,15 @@ namespace ZipFileProcessor.Services.Processor
             foreach (var entry in zipArchive.Entries)
             {
                 var destinationPath = Path.Combine(extractPath, entry.FullName);
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? throw new InvalidOperationException());
+                var directory = Path.GetDirectoryName(destinationPath);
+                if (directory != null && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                    Log.Information("Created directory: {DirectoryPath}", directory);
+                }
+
                 entry.ExtractToFile(destinationPath, overwrite: true);
+                Log.Information("Extracted file: {FilePath}", destinationPath);
             }
         }
 
